@@ -13,6 +13,10 @@ const Registeration = new mongoose.Schema({
         type: String,
         required: true
     },
+    semester: {
+        type: Number,
+        required: true
+    },
     branch: {
         type: String,
         required: true
@@ -25,7 +29,7 @@ const Registeration = new mongoose.Schema({
         type: Array,
         required: true
     },
-    otp: {
+    amount: {
         type: Number,
         required: true
     },

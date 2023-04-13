@@ -5,9 +5,11 @@ const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 require('dotenv').config();
 app.use(express.json());
+const fileUpload = require('express-fileupload')
 
 // Database connection
 require('./database/database')
+app.use(fileUpload());
 
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(cookieParser());

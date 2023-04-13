@@ -1,14 +1,18 @@
 const mongoose = require('mongoose');
 const isEmail = require ( 'validator/lib/isEmail')
-var AutoIncrement = require('mongoose-sequence')(mongoose)
 
 const Events = new mongoose.Schema({
     eventId: {
         type: Number,
+        default: 1
     },
     organiserEmail: {
         type: String,
         validate: [isEmail,'Invalid email address'],
+    },
+    image: {
+        type: String,
+        required : true
     },
     title: {
         type: String,
@@ -45,7 +49,4 @@ const Events = new mongoose.Schema({
     }
 })
 
-Events.plugin(AutoIncrement, { id: 'status_seq', inc_field: 'eventId' })
-Events.set('collection', 'Event')
-
-module.exports = mongoose.model('Event', Events);
+module.exports = mongoose.model('event', Events);

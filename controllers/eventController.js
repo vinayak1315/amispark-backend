@@ -4,7 +4,7 @@ const Admin = require('../models/admin');
 
 exports.addEvents = async (req, res, next) => {
     try {
-        let { title, phone, description, studentCordinator, facultyCordinator, price, status, organiserEmail } = req.body;
+        let { title, phone, description, studentCordinator, facultyCordinator, price, status, organiserEmail, image } = req.body;
         //Check ?
         if (title == "" || phone == "" || description == "" || studentCordinator == [] || facultyCordinator == [] || status == "") {
             return next(new ErrorHandler('Please Provide Valid Details', 403));
@@ -22,22 +22,32 @@ exports.addEvents = async (req, res, next) => {
             }
         }
 
-        if (studentCordinator.length != 2) {
-            return next(new ErrorHandler('There must be two event coordinator', 403));
-        }
-
         if (organiser.role == 'organiser') {
             organiserEmail = organiser.email;
         }
+        
+        let eventId = 1
+        const eventData = await Events.find();
+
+        if(eventData.length == 0) {
+            eventId = 1
+        } else {
+            eventId = eventId + eventData.length
+        }
+      
+        
         const event = await Events.create({
+            eventId,
             title,
             phone,
             description,
             studentCordinator,
             facultyCordinator,
             price,
-            organiserEmail
+            organiserEmail,
+            image
         })
+        
         res.status(200).json({
             success: true,
             message: "Event register Successfully",

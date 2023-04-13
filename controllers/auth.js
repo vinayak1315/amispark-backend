@@ -3,25 +3,70 @@ const Registration = require('../models/user')
 const Organiser = require('../models/admin')
 const jwt = require("jsonwebtoken")
 const bcrypt = require('bcrypt')
+const Events = require('../models/event')
 
 exports.userRegister = async (req, res, next) => {
     try {
-        let { name, email, events, phone, branch, semester } = req.body;
+        let { name, email, events, phone, branch, semester, gender, amount } = req.body;
 
-        if (name == "" || email == "" || events == [] || phone == "") {
+        if (name == "" || email == "" || events == [] || phone == "" || amount == "") {
             return next(new ErrorHandler('Please Provide Valid Details', 404));
         }
 
         const register = await Registration.create({
             name,
             email,
+            gender,
+            branch,
+            semester,
             events,
             phone,
+            amount
         })
 
         res.status(200).json({
             success: true,
             data: register
+        })
+    } catch (err) {
+        return next(new ErrorHandler(err.message, 500))
+    }
+}
+
+exports.getRegisteredUser = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        let userData = []
+        const user = await Registration.find()
+        const organiser = req.user
+
+        if (organiser.role == "organiser") {
+            const eventList = await Events.findOne({ organiserEmail: organiser.email, eventId: id })
+
+            if (eventList) {
+                user.map((val) => {
+                    val.events.map((eventId) => {
+                        if (eventId == id) {
+                            userData.push(val)
+                        }
+                    })
+                })
+            } else {
+                return next(new ErrorHandler("This event is not in your bucket!!", 404))
+            }
+        }
+        if (organiser.role == "admin") {
+            user.map((val) => {
+                val.events.map((eventId) => {
+                    if (eventId == id) {
+                        userData.push(val)
+                    }
+                })
+            })
+        }
+        res.status(200).json({
+            success: true,
+            data: userData
         })
     } catch (err) {
         return next(new ErrorHandler(err.message, 500))
@@ -109,10 +154,10 @@ exports.logout = async (req, res, next) => {
     }
 }
 
-exports.updateOrganiser=async (req, res, next) => {
-    try{
+exports.updateOrganiser = async (req, res, next) => {
+    try {
         let id = req.params.id
-        const user = await Organiser.findByIdAndUpdate( id, req.body, {
+        const user = await Organiser.findByIdAndUpdate(id, req.body, {
             new: true,
             runValidators: true,
             useFindAndModify: false
@@ -122,7 +167,7 @@ exports.updateOrganiser=async (req, res, next) => {
             success: true,
             data: user
         })
-    }catch(err){
+    } catch (err) {
         return next(new ErrorHandler(err.message, 500))
     }
 }
@@ -131,7 +176,7 @@ exports.deleteOrganiser = async (req, res, next) => {
     try {
         const id = req.params.id
         const deleteUser = await Organiser.findByIdAndDelete(id);
-        if(!deleteUser) {
+        if (!deleteUser) {
             return next(new ErrorHandler("User Not exist", 500))
         }
         res.status(200).json({
