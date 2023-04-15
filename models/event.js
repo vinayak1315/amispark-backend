@@ -20,7 +20,6 @@ const Events = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: true
     },
     description: {
         type: String,

@@ -4,9 +4,9 @@ const Admin = require('../models/admin');
 
 exports.addEvents = async (req, res, next) => {
     try {
-        let { title, phone, description, studentCordinator, facultyCordinator, price, status, organiserEmail, image } = req.body;
+        let { title, description, studentCordinator, facultyCordinator, price, status, organiserEmail, image } = req.body;
         //Check ?
-        if (title == "" || phone == "" || description == "" || studentCordinator == [] || facultyCordinator == [] || status == "") {
+        if (title == "" || description == "" || studentCordinator == [] || facultyCordinator == [] || status == "") {
             return next(new ErrorHandler('Please Provide Valid Details', 403));
         }
 

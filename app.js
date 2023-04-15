@@ -3,10 +3,12 @@ const errorMiddleware = require('./middlewares/errors')
 const app = express();
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
+var cors = require('cors')
 require('dotenv').config();
 app.use(express.json());
-const fileUpload = require('express-fileupload')
 
+const fileUpload = require('express-fileupload')
+app.use(cors())
 // Database connection
 require('./database/database')
 app.use(fileUpload());
