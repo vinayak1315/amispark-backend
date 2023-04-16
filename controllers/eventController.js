@@ -1,12 +1,22 @@
 const ErrorHandler = require("../utils/errorHandler")
 const Events = require('../models/event');
 const Admin = require('../models/admin');
+const cloudinary = require('cloudinary')
 
 exports.addEvents = async (req, res, next) => {
     try {
-        let { title, description, studentCordinator, facultyCordinator, price, status, organiserEmail, image } = req.body;
-        //Check ?
-        if (title == "" || description == "" || studentCordinator == [] || facultyCordinator == [] || status == "") {
+        let { title, description, studentCordinator, facultyCordinator, amitianPrice, nonAmitianPrice, status, organiserEmail, image } = req.body;
+
+        let adminData = req.user;
+
+        let event;
+
+        const result = await cloudinary.v2.uploader.upload(req.body.image, {
+            folder: 'events',
+        })
+
+        //Check 
+        if (title == "" || description == "" || studentCordinator == [] || facultyCordinator == [] || status == "" || amitianPrice == "" || nonAmitianPrice == "") {
             return next(new ErrorHandler('Please Provide Valid Details', 403));
         }
 
@@ -25,29 +35,53 @@ exports.addEvents = async (req, res, next) => {
         if (organiser.role == 'organiser') {
             organiserEmail = organiser.email;
         }
-        
+
         let eventId = 1
         const eventData = await Events.find();
 
-        if(eventData.length == 0) {
+        if (eventData.length == 0) {
             eventId = 1
         } else {
             eventId = eventId + eventData.length
         }
-      
-        
-        const event = await Events.create({
-            eventId,
-            title,
-            phone,
-            description,
-            studentCordinator,
-            facultyCordinator,
-            price,
-            organiserEmail,
-            image
-        })
-        
+
+        if (adminData.role == 'admin') {
+            event = await Events.create({
+                eventId,
+                title,
+                description,
+                studentCordinator,
+                image: {
+                    public_id: result.public_id,
+                    url: result.secure_url
+                },
+                facultyCordinator,
+                amitianPrice,
+                nonAmitianPrice,
+                organiserEmail,
+                status: "approved"
+            })
+        } else {
+            event = await Events.create({
+                eventId,
+                title,
+                description,
+                studentCordinator,
+                image: {
+                    public_id: 1231356,
+                    url: "https://res.cloudinary.com/apnidukanimg/image/upload/v1650972079/cld-sample.jpg"
+                },
+                // image: {
+                //     public_id: result.public_id,
+                //     url: result.secure_url
+                // },
+                facultyCordinator,
+                amitianPrice,
+                nonAmitianPrice,
+                organiserEmail
+            })
+        }
+
         res.status(200).json({
             success: true,
             message: "Event register Successfully",
@@ -78,12 +112,34 @@ exports.updateEvent = async (req, res, next) => {
 
 exports.getAllEvents = async (req, res, next) => {
     try {
-        let { page, limit } = req.query;
-        const eventData = await Events.find().limit(limit).skip((page -1) * limit)
+
+        let { amitian } = req.query;
+        let eventData;
+        let data = []
+
+        if (amitian == "true") {
+            eventData = await Events.find({ status: "approved" })
+            eventData.map((event) => {
+                data.push({
+                    eventId: event.eventId,
+                    title: event.title,
+                    price: event.amitianPrice
+                })
+            })
+        } else if(amitian == "false"){
+            eventData = await Events.find({ status: "approved" })
+            eventData.map((event) => {
+                data.push({
+                    eventId: event.eventId,
+                    title: event.title,
+                    price: event.nonAmitianPrice
+                })
+            })
+        }
 
         res.status(200).json({
             success: true,
-            data: eventData
+            data: data
         })
 
     } catch (err) {
@@ -128,27 +184,34 @@ exports.getSingleEvents = async (req, res, next) => {
 exports.getOrganiserEvents = async (req, res, next) => {
     try {
         const userChecker = req.user;
-        let { organiserEmail } = req.query
+        let event;
+        let { eventStatus } = req.query;
+        let count;
 
-        if(userChecker.role == 'organiser') {
+
+        if (userChecker.role == 'organiser') {
             organiserEmail = userChecker.email
-        }
-        if(userChecker.role == 'admin') {
-            if (organiserEmail == "") {
-                return next(new ErrorHandler('Please provide organiser email', 400))
-            }
-            const organiserData = await Admin.findOne({ email: organiserEmail });
-            if (!organiserData) {
-                return next(new ErrorHandler('Please provide valid organiser email id', 400))
+            if (eventStatus == 'all') {
+                event = await Events.find({ organiserEmail: organiserEmail });
+                count = event.length;
+            } else {
+                event = await Events.find({ organiserEmail: organiserEmail, status: eventStatus });
+                count = event.length;
             }
         }
-        const event = await Events.find({organiserEmail: organiserEmail});
-        if (!event) {
-            return next(new ErrorHandler(`Event not found with this id: ${req.params.id}`));
+        if (userChecker.role == 'admin') {
+            if (eventStatus == "all") {
+                event = await Events.find();
+                count = event.length;
+            } else {
+                event = await Events.find({ status: eventStatus });
+                count = event.length;
+            }
         }
         res.status(200).json({
             success: true,
-            data: event
+            data: event,
+            count: count
         })
     } catch (err) {
         return next(new ErrorHandler(err.message, 500))

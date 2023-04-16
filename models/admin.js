@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const isEmail = require ( 'validator/lib/isEmail')
 const Admin = new mongoose.Schema({
-
     name: {
         type: String,
         required: true,
@@ -37,8 +36,7 @@ const Admin = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
-
+    },
 })
 
 module.exports = mongoose.model('admin', Admin);

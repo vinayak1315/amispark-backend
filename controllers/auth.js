@@ -36,6 +36,7 @@ exports.userRegister = async (req, res, next) => {
 exports.getRegisteredUser = async (req, res, next) => {
     try {
         const id = req.params.id;
+        let count;
         let userData = []
         const user = await Registration.find()
         const organiser = req.user
@@ -52,7 +53,7 @@ exports.getRegisteredUser = async (req, res, next) => {
                     })
                 })
             } else {
-                return next(new ErrorHandler("This event is not in your bucket!!", 404))
+                return next(new ErrorHandler("Oops! Event is not in your bucket", 404))
             }
         }
         if (organiser.role == "admin") {
@@ -66,7 +67,8 @@ exports.getRegisteredUser = async (req, res, next) => {
         }
         res.status(200).json({
             success: true,
-            data: userData
+            data: userData,
+            count: userData.length
         })
     } catch (err) {
         return next(new ErrorHandler(err.message, 500))

@@ -11,8 +11,14 @@ const Events = new mongoose.Schema({
         validate: [isEmail,'Invalid email address'],
     },
     image: {
-        type: String,
-        required : true
+        public_id: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
     },
     title: {
         type: String,
@@ -34,7 +40,11 @@ const Events = new mongoose.Schema({
         type: Object, 
         required: true
     },
-    price:{   
+    amitianPrice:{   
+        type:Number,      
+        required: true
+    },
+    nonAmitianPrice:{   
         type:Number,      
         required: true
     },
