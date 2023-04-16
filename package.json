@@ -2,7 +2,7 @@
   "name": "fest-backend",
   "version": "1.0.0",
   "engines": {
-    "node": "14.16.1"
+    "node": "18.x"
   },
   "description": "",
   "main": "app.js",
